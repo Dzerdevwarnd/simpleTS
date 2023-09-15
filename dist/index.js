@@ -3,62 +3,86 @@ var __importDefault = (this && this.__importDefault) || function (mod) {
     return (mod && mod.__esModule) ? mod : { "default": mod };
 };
 Object.defineProperty(exports, "__esModule", { value: true });
-const body_parser_1 = __importDefault(require("body-parser"));
 const express_1 = __importDefault(require("express"));
 const app = (0, express_1.default)();
 const port = process.env.PORT || 3000;
-const products = [
-    { id: 1, title: 'tomato' },
-    { id: 2, title: 'orange' },
+app.use(express_1.default.json());
+var AvailableResolutions;
+(function (AvailableResolutions) {
+    AvailableResolutions["P144"] = "P144";
+    AvailableResolutions["P240"] = "P240";
+    AvailableResolutions["P360"] = "P360";
+    AvailableResolutions["P480"] = "P480";
+    AvailableResolutions["P720"] = "P720";
+    AvailableResolutions["P1080"] = "P1080";
+    AvailableResolutions["P1440"] = "P1440";
+    AvailableResolutions["P2160"] = "P2160";
+})(AvailableResolutions || (AvailableResolutions = {}));
+const videos = [
+    {
+        id: 1,
+        title: 'test',
+        author: 'string',
+        canBeDownloaded: true,
+        minAgeRestriction: null,
+        createdAt: '2023-09-15T08:36:39.218Z',
+        publicationDate: '2023-09-15T08:36:39.218Z',
+        availableResolutions: [AvailableResolutions.P144],
+    },
 ];
-const adresses = [{ value: 'Nezalejnasti 12' }, { value: 'Selickaga 11' }];
-const parserMiddleware = (0, body_parser_1.default)({});
-app.use(parserMiddleware);
-app.put('/products/:id', (req, res) => {
-    let product = products.find(p => p.id === +req.params.id);
-    if (product) {
-        product.title = req.body.title;
-        res.send(product);
-    }
-    else {
-        res.send(404);
-    }
+app.get('/videos', (req, res) => {
+    res.send(videos);
 });
-app.get('/products', (req, res) => {
-    if (req.query.title) {
-        let searchString = req.query.title.toString();
-        res.send(products.filter(p => p.title.indexOf(searchString) > -1));
+app.get('/videos', (req, res) => {
+    let video = videos.find(p => p.id === +req.params.id);
+    if (!videos) {
+        res.sendStatus(404);
+        return;
     }
-    else {
-        res.send(products);
-    }
+    res.send(video);
 });
-app.get('/products/:id', (req, res) => {
-    let product = products.find(p => p.id === +req.params.id);
-    if (product) {
-        res.send(product);
-    }
-    else {
-        res.send(404);
-    }
-});
-app.post('/products', (req, res) => {
-    const newProduct = {
-        id: +new Date(),
-        title: req.body.title,
+app.post('videos', (req, res) => {
+    let errors = {
+        errorsMessages: [],
     };
-    products.push(newProduct);
-    res.status(201).send(newProduct);
-});
-app.delete('/products/:id', (req, res) => {
-    for (let i = 0; i < products.length; i++) {
-        if (products[i].id === +req.params.id) {
-            products.splice(i, 1);
-            res.send(204);
-            return;
-        }
+    let { title, author, availableResolutions } = req.body;
+    if (!title || !title.length || title.trim().length > 40) {
+        errors.errorsMessages.push({ message: 'Invalid title', field: 'title' });
     }
-    res.send(404);
+    if (!author || !author.length || author.trim().length > 20) {
+        errors.errorsMessages.push({ message: 'Invalid author', field: 'author' });
+    }
+    if (Array.isArray(availableResolutions)) {
+        availableResolutions.map((r) => {
+            !AvailableResolutions[r] &&
+                errors.errorsMessages.push({
+                    message: 'Invalid availableResolutions',
+                    field: 'availableResolutions',
+                });
+        });
+    }
+    else {
+        availableResolutions = [];
+    }
+    if (errors.errorsMessages.length) {
+        res.status(400).send(errors);
+        return;
+    }
+    const createdAt = new Date();
+    const publicationDate = new Date();
+    publicationDate.setDate(createdAt.getDate() + 1);
+    const newVideo = {
+        id: +new Date(),
+        canBeDownloaded: false,
+        minAgeRestriction: null,
+        createdAt: createdAt.toISOString(),
+        publicationDate: createdAt.toISOString(),
+        title,
+        author,
+        availableResolutions,
+    };
+    videos.push(newVideo);
+    res.status(201).send(newVideo);
 });
 app.listen(port, () => {
     console.log(`Example app listening on port ${port}`);
