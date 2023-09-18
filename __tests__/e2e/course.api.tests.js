@@ -13,9 +13,22 @@ var __importDefault = (this && this.__importDefault) || function (mod) {
 };
 Object.defineProperty(exports, "__esModule", { value: true });
 const supertest_1 = __importDefault(require("supertest"));
-const index1_1 = require("../../src/index1");
+const src_1 = require("../../src");
 describe('/products	 ', () => {
     it('should', () => __awaiter(void 0, void 0, void 0, function* () {
-        yield (0, supertest_1.default)(index1_1.app).get('/products').expect(200, []);
+        yield (0, supertest_1.default)(src_1.app)
+            .get('/videos')
+            .expect(200, [
+            {
+                id: 1,
+                title: 'test',
+                author: 'string',
+                canBeDownloaded: true,
+                minAgeRestriction: null,
+                createdAt: '2023-09-15T08:36:39.218Z',
+                publicationDate: '2023-09-15T08:36:39.218Z',
+                availableResolutions: ['P144'],
+            },
+        ]);
     }));
 });

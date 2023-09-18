@@ -1,12 +1,13 @@
 import express, { Request, Response } from 'express'
 
-const app = express()
-const port = process.env.PORT || 3000
+export const app = express()
+const port = process.env.PORT || 3004
 
 app.use(express.json())
 
 type RequestWithParams<P> = Request<P, {}, {}, {}>
 type RequestWithBody<B> = Request<{}, {}, B, {}>
+type RequestWithPB<P, B> = Request<P, {}, B, {}>
 
 type ErrorMessageType = {
 	message: string
@@ -53,14 +54,17 @@ const videos: any[] = [
 ]
 
 app.get('/videos', (req: Request, res: Response): void => {
-	res.send(videos)
+	res.sendStatus(201).send(videos)
 })
 
 app.get(
-	'/videos',
+	'/videos/:id',
 	(req: RequestWithParams<{ id: number }>, res: Response): void => {
-		let video: VideoType | undefined = videos.find(p => p.id === +req.params.id)
-		if (!videos) {
+		const id: number = +req.params.id
+		const video: VideoType | undefined = videos.find(
+			(video): boolean => video.id === id
+		)
+		if (!video) {
 			res.sendStatus(404)
 			return
 		}
@@ -69,7 +73,7 @@ app.get(
 )
 
 app.post(
-	'videos',
+	'/videos',
 	(
 		req: RequestWithBody<{
 			title: string
@@ -128,6 +132,106 @@ app.post(
 		res.status(201).send(newVideo)
 	}
 )
+
+app.put(
+	'/videos/:id',
+	(
+		req: RequestWithPB<
+			{ id: number },
+			{
+				title: string
+				author: string
+				availableResolutions: AvailableResolutions[]
+				canBeDownloaded: boolean
+				minAgeRestriction: number
+				publicationDate: string
+			}
+		>,
+		res: Response
+	): void => {
+		let errors: ErrorType = {
+			errorsMessages: [],
+		}
+		let {
+			title,
+			author,
+			availableResolutions,
+			canBeDownloaded,
+			minAgeRestriction,
+			publicationDate,
+		} = req.body
+
+		if (!title || !title.length || title.trim().length > 40) {
+			errors.errorsMessages.push({ message: 'Invalid title', field: 'title' })
+		}
+
+		if (!author || !author.length || author.trim().length > 20) {
+			errors.errorsMessages.push({ message: 'Invalid author', field: 'author' })
+		}
+
+		if (Array.isArray(availableResolutions)) {
+			availableResolutions.map((r: AvailableResolutions): void => {
+				!AvailableResolutions[r] &&
+					errors.errorsMessages.push({
+						message: 'Invalid availableResolutions',
+						field: 'availableResolutions',
+					})
+			})
+		} else {
+			availableResolutions = []
+		}
+
+		if (errors.errorsMessages.length) {
+			res.status(400).send(errors)
+			return
+		}
+
+		const id: number = +req.params.id
+		let video: VideoType = videos.find((video): boolean => video.id === id)
+		if (videos) {
+			video.title = title
+			video.author = author
+			video.availableResolutions = availableResolutions
+			video.canBeDownloaded = canBeDownloaded
+			video.minAgeRestriction = minAgeRestriction
+			video.publicationDate = publicationDate
+		} else {
+			res.status(404)
+		}
+
+		res.status(204).send(video)
+	}
+)
+
+app.delete(
+	'/videos/:id',
+	(req: RequestWithParams<{ id: number }>, res: Response): void => {
+		const id: number = +req.params.id
+		let video: VideoType | undefined = videos.find(
+			(video): boolean => video.id === id
+		)
+		let index: number = videos.findIndex(n => n.id === id)
+		if (!video) {
+			res.sendStatus(404)
+			return
+		} else {
+			videos.splice(index, 1)
+			res.send(204)
+			return
+		}
+	}
+)
+
+app.delete('/testing/all-data', (req: Request, res: Response): void => {
+	if (!videos) {
+		res.sendStatus(404)
+		return
+	} else {
+		videos.splice(0, videos.length)
+		res.send(204)
+		return
+	}
+})
 
 app.listen(port, () => {
 	console.log(`Example app listening on port ${port}`)

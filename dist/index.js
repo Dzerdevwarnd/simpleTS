@@ -3,10 +3,11 @@ var __importDefault = (this && this.__importDefault) || function (mod) {
     return (mod && mod.__esModule) ? mod : { "default": mod };
 };
 Object.defineProperty(exports, "__esModule", { value: true });
+exports.app = void 0;
 const express_1 = __importDefault(require("express"));
-const app = (0, express_1.default)();
-const port = process.env.PORT || 3000;
-app.use(express_1.default.json());
+exports.app = (0, express_1.default)();
+const port = process.env.PORT || 3004;
+exports.app.use(express_1.default.json());
 var AvailableResolutions;
 (function (AvailableResolutions) {
     AvailableResolutions["P144"] = "P144";
@@ -30,18 +31,19 @@ const videos = [
         availableResolutions: [AvailableResolutions.P144],
     },
 ];
-app.get('/videos', (req, res) => {
+exports.app.get('/videos', (req, res) => {
     res.send(videos);
 });
-app.get('/videos', (req, res) => {
-    let video = videos.find(p => p.id === +req.params.id);
-    if (!videos) {
+exports.app.get('/videos/:id', (req, res) => {
+    const id = +req.params.id;
+    const video = videos.find((video) => video.id === id);
+    if (!video) {
         res.sendStatus(404);
         return;
     }
     res.send(video);
 });
-app.post('videos', (req, res) => {
+exports.app.post('/videos', (req, res) => {
     let errors = {
         errorsMessages: [],
     };
@@ -84,6 +86,73 @@ app.post('videos', (req, res) => {
     videos.push(newVideo);
     res.status(201).send(newVideo);
 });
-app.listen(port, () => {
+exports.app.put('/videos/:id', (req, res) => {
+    let errors = {
+        errorsMessages: [],
+    };
+    let { title, author, availableResolutions, canBeDownloaded, minAgeRestriction, publicationDate, } = req.body;
+    if (!title || !title.length || title.trim().length > 40) {
+        errors.errorsMessages.push({ message: 'Invalid title', field: 'title' });
+    }
+    if (!author || !author.length || author.trim().length > 20) {
+        errors.errorsMessages.push({ message: 'Invalid author', field: 'author' });
+    }
+    if (Array.isArray(availableResolutions)) {
+        availableResolutions.map((r) => {
+            !AvailableResolutions[r] &&
+                errors.errorsMessages.push({
+                    message: 'Invalid availableResolutions',
+                    field: 'availableResolutions',
+                });
+        });
+    }
+    else {
+        availableResolutions = [];
+    }
+    if (errors.errorsMessages.length) {
+        res.status(400).send(errors);
+        return;
+    }
+    const id = +req.params.id;
+    let video = videos.find((video) => video.id === id);
+    if (videos) {
+        video.title = title;
+        video.author = author;
+        video.availableResolutions = availableResolutions;
+        video.canBeDownloaded = canBeDownloaded;
+        video.minAgeRestriction = minAgeRestriction;
+        video.publicationDate = publicationDate;
+    }
+    else {
+        res.status(404);
+    }
+    res.status(204).send(video);
+});
+exports.app.delete('/videos/:id', (req, res) => {
+    const id = +req.params.id;
+    let video = videos.find((video) => video.id === id);
+    let index = videos.findIndex(n => n.id === id);
+    if (!video) {
+        res.sendStatus(404);
+        return;
+    }
+    else {
+        videos.splice(index, 1);
+        res.send(204);
+        return;
+    }
+});
+exports.app.delete('/videos', (req, res) => {
+    if (!videos) {
+        res.sendStatus(404);
+        return;
+    }
+    else {
+        videos.splice(0, videos.length);
+        res.send(204);
+        return;
+    }
+});
+exports.app.listen(port, () => {
     console.log(`Example app listening on port ${port}`);
 });
