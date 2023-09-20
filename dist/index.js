@@ -32,7 +32,7 @@ const videos = [
     },
 ];
 exports.app.get('/videos', (req, res) => {
-    res.sendStatus(201).send(videos);
+    res.status(201).send(videos);
 });
 exports.app.get('/videos/:id', (req, res) => {
     const id = +req.params.id;

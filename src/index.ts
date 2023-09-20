@@ -54,7 +54,7 @@ const videos: any[] = [
 ]
 
 app.get('/videos', (req: Request, res: Response): void => {
-	res.sendStatus(201).send(videos)
+	res.status(201).send(videos)
 })
 
 app.get(
