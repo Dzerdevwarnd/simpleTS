@@ -32,7 +32,7 @@ const videos = [
     },
 ];
 exports.app.get('/videos', (req, res) => {
-    res.status(201).send(videos);
+    res.status(200).send(videos);
 });
 exports.app.get('/videos/:id', (req, res) => {
     const id = +req.params.id;
@@ -78,7 +78,7 @@ exports.app.post('/videos', (req, res) => {
         canBeDownloaded: false,
         minAgeRestriction: null,
         createdAt: createdAt.toISOString(),
-        publicationDate: createdAt.toISOString(),
+        publicationDate: publicationDate.toISOString(),
         title,
         author,
         availableResolutions,
@@ -109,6 +109,24 @@ exports.app.put('/videos/:id', (req, res) => {
     else {
         availableResolutions = [];
     }
+    if (!canBeDownloaded || typeof canBeDownloaded !== 'boolean') {
+        errors.errorsMessages.push({
+            message: 'Invalid canBeDownloaded',
+            field: 'canBeDownloaded',
+        });
+    }
+    if (!minAgeRestriction ||
+        minAgeRestriction > 18 ||
+        minAgeRestriction < 1 ||
+        typeof minAgeRestriction !== 'number') {
+        errors.errorsMessages.push({
+            message: 'Invalid Age',
+            field: 'minAgeRestriction',
+        });
+    }
+    if (!publicationDate || !publicationDate.length) {
+        errors.errorsMessages.push({ message: 'Invalid author', field: 'author' });
+    }
     if (errors.errorsMessages.length) {
         res.status(400).send(errors);
         return;
@@ -122,11 +140,11 @@ exports.app.put('/videos/:id', (req, res) => {
         video.canBeDownloaded = canBeDownloaded;
         video.minAgeRestriction = minAgeRestriction;
         video.publicationDate = publicationDate;
+        res.status(204).send(video);
     }
     else {
         res.status(404);
     }
-    res.status(204).send(video);
 });
 exports.app.delete('/videos/:id', (req, res) => {
     const id = +req.params.id;
