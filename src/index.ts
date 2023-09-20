@@ -113,7 +113,7 @@ app.post(
 		}
 
 		const createdAt: Date = new Date()
-		const publicationDate: Date = new Date()
+		let publicationDate: Date = new Date()
 
 		publicationDate.setDate(createdAt.getDate() + 1)
 
@@ -188,7 +188,7 @@ app.put(
 
 		const id: number = +req.params.id
 		let video: VideoType = videos.find((video): boolean => video.id === id)
-		if (videos) {
+		if (video) {
 			video.title = title
 			video.author = author
 			video.availableResolutions = availableResolutions

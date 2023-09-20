@@ -32,7 +32,7 @@ const videos = [
     },
 ];
 exports.app.get('/videos', (req, res) => {
-    res.send(videos);
+    res.sendStatus(201).send(videos);
 });
 exports.app.get('/videos/:id', (req, res) => {
     const id = +req.params.id;
@@ -71,7 +71,7 @@ exports.app.post('/videos', (req, res) => {
         return;
     }
     const createdAt = new Date();
-    const publicationDate = new Date();
+    let publicationDate = new Date();
     publicationDate.setDate(createdAt.getDate() + 1);
     const newVideo = {
         id: +new Date(),
@@ -115,7 +115,7 @@ exports.app.put('/videos/:id', (req, res) => {
     }
     const id = +req.params.id;
     let video = videos.find((video) => video.id === id);
-    if (videos) {
+    if (video) {
         video.title = title;
         video.author = author;
         video.availableResolutions = availableResolutions;
@@ -142,7 +142,7 @@ exports.app.delete('/videos/:id', (req, res) => {
         return;
     }
 });
-exports.app.delete('/videos', (req, res) => {
+exports.app.delete('/testing/all-data', (req, res) => {
     if (!videos) {
         res.sendStatus(404);
         return;
