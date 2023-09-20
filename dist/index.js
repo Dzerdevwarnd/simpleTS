@@ -125,7 +125,10 @@ exports.app.put('/videos/:id', (req, res) => {
         });
     }
     if (!publicationDate || !publicationDate.length) {
-        errors.errorsMessages.push({ message: 'Invalid author', field: 'author' });
+        errors.errorsMessages.push({
+            message: 'Invalid publicationDate',
+            field: 'publicationDate',
+        });
     }
     if (errors.errorsMessages.length) {
         res.status(400).send(errors);
@@ -141,9 +144,11 @@ exports.app.put('/videos/:id', (req, res) => {
         video.minAgeRestriction = minAgeRestriction;
         video.publicationDate = publicationDate;
         res.status(204).send(video);
+        return;
     }
     else {
         res.status(404);
+        return;
     }
 });
 exports.app.delete('/videos/:id', (req, res) => {
