@@ -147,7 +147,7 @@ exports.app.put('/videos/:id', (req, res) => {
         return;
     }
     else {
-        res.status(404);
+        res.sendStatus(404);
         return;
     }
 });

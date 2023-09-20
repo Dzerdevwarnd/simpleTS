@@ -224,7 +224,7 @@ app.put(
 			res.status(204).send(video)
 			return
 		} else {
-			res.status(404)
+			res.sendStatus(404)
 			return
 		}
 	}
