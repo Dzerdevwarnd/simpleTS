@@ -52,7 +52,7 @@ videosRouter.get(
 			res.sendStatus(404)
 			return
 		} else {
-			res.status(201).send(foundVideo)
+			res.status(200).send(foundVideo)
 			return
 		}
 	}
