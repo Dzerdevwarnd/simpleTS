@@ -36,18 +36,7 @@ type VideoType = {
 	availableResolutions: Array<AvailableResolutions>
 }
 
-export const videos: any[] = [
-	{
-		id: 1,
-		title: 'test',
-		author: 'string',
-		canBeDownloaded: true,
-		minAgeRestriction: null,
-		createdAt: '2023-09-15T08:36:39.218Z',
-		publicationDate: '2023-09-15T08:36:39.218Z',
-		availableResolutions: [AvailableResolutions.P144],
-	},
-]
+import { videos } from '../Repositories/videos-repository'
 
 export const videosRouter = Router({})
 
@@ -58,7 +47,7 @@ videosRouter.get('/', (req: Request, res: Response): void => {
 videosRouter.get(
 	'/:id',
 	(req: RequestWithParams<{ id: number }>, res: Response): void => {
-		const foundVideo = videosRepository.findVideo(req.params.id)
+		const foundVideo = videosRepository.findVideo(+req.params.id)
 		if (!foundVideo) {
 			res.sendStatus(404)
 			return
@@ -109,21 +98,7 @@ videosRouter.post(
 			return
 		}
 
-		const createdAt: Date = new Date()
-		let publicationDate: Date = new Date()
-
-		publicationDate.setDate(createdAt.getDate() + 1)
-
-		const newVideo: VideoType = {
-			id: +new Date(),
-			canBeDownloaded: false,
-			minAgeRestriction: null,
-			createdAt: createdAt.toISOString(),
-			publicationDate: publicationDate.toISOString(),
-			title,
-			author,
-			availableResolutions,
-		}
+		const newVideo = videosRepository.createVideo(req.body)
 
 		videos.push(newVideo)
 		res.status(201).send(newVideo)
@@ -209,15 +184,8 @@ videosRouter.put(
 			return
 		}
 
-		const id: number = +req.params.id
-		let video: VideoType = videos.find((video): boolean => video.id === id)
+		let video = videosRepository.updateVideo(req.body, req.params)
 		if (video) {
-			video.title = title
-			video.author = author
-			video.availableResolutions = availableResolutions
-			video.canBeDownloaded = canBeDownloaded
-			video.minAgeRestriction = minAgeRestriction
-			video.publicationDate = publicationDate
 			res.status(204).send(video)
 			return
 		} else {
@@ -230,16 +198,11 @@ videosRouter.put(
 videosRouter.delete(
 	'/:id',
 	(req: RequestWithParams<{ id: number }>, res: Response): void => {
-		const id: number = +req.params.id
-		let video: VideoType | undefined = videos.find(
-			(video): boolean => video.id === id
-		)
-		let index: number = videos.findIndex(n => n.id === id)
-		if (!video) {
+		let result = videosRepository.deleteVideo(req.params)
+		if (!result) {
 			res.sendStatus(404)
 			return
 		} else {
-			videos.splice(index, 1)
 			res.send(204)
 			return
 		}

@@ -19,7 +19,6 @@ type VideoType = {
 	publicationDate: string
 	availableResolutions: Array<AvailableResolutions>
 }
-
 export const videos: any[] = [
 	{
 		id: 1,
@@ -63,6 +62,48 @@ export const videosRepository = {
 			title: body.title,
 			author: body.author,
 			availableResolutions: body.availableResolutions,
+		}
+		return newVideo
+	},
+
+	updateVideo(
+		body: {
+			title: string
+			author: string
+			availableResolutions: AvailableResolutions[]
+			canBeDownloaded: boolean
+			minAgeRestriction: number
+			publicationDate: string
+		},
+		params: { id: number }
+	) {
+		const id: number = +params.id
+		let video: VideoType | undefined = videos.find(
+			(video): boolean => video.id === id
+		)
+		if (!video) {
+			return
+		} else {
+			video.canBeDownloaded = body.canBeDownloaded
+			video.minAgeRestriction = body.minAgeRestriction
+			video.publicationDate = body.publicationDate
+			video.title = body.title
+			video.author = body.author
+			video.availableResolutions = body.availableResolutions
+			return video
+		}
+	},
+	deleteVideo(params: { id: number }) {
+		const id: number = +params.id
+		let video: VideoType | undefined = videos.find(
+			(video): boolean => video.id === id
+		)
+		let index: number = videos.findIndex(n => n.id === id)
+		if (!video) {
+			return
+		} else {
+			videos.splice(index, 1)
+			return 204
 		}
 	},
 }
